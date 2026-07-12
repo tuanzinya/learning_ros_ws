@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<robot name="imu_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Default parameters -->
+  <xacro:property name="base_radius" value="0.1"/>
+  <xacro:property name="base_height" value="0.12"/>
+  <xacro:property name="imu_size" value="0.02"/>
+
+  <xacro:property name="imu1_xyz" value="0.0 0.0 0.03"/>
+  <xacro:property name="imu2_xyz" value="0.0 0.0 -0.03"/>
+
+  <material name="base_gray">
+    <color rgba="0.4 0.4 0.4 1.0"/>
+  </material>
+
+  <material name="imu_blue">
+    <color rgba="0.1 0.3 0.9 1.0"/>
+  </material>
+
+  <!-- Base body module -->
+  <xacro:macro name="base_body" params="link_name radius height mass:=1.0">
+    <link name="${link_name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${height}"/>
+        </geometry>
+        <material name="base_gray"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <cylinder radius="${radius}" length="${height}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${mass * (3 * radius * radius + height * height) / 12}" ixy="0.0" ixz="0.0"
+          iyy="${mass * (3 * radius * radius + height * height) / 12}" iyz="0.0"
+          izz="${mass * radius * radius / 2}"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <!-- IMU sensor module -->
+  <xacro:macro name="imu_sensor" params="link_name joint_name parent_link xyz size mass:=0.01">
+    <link name="${link_name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${size} ${size} ${size}"/>
+        </geometry>
+        <material name="imu_blue"/>
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="${size} ${size} ${size}"/>
+        </geometry>
+      </collision>
+
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="${mass}"/>
+        <inertia
+          ixx="${mass * (size * size + size * size) / 12}" ixy="0.0" ixz="0.0"
+          iyy="${mass * (size * size + size * size) / 12}" iyz="0.0"
+          izz="${mass * (size * size + size * size) / 12}"/>
+      </inertial>
+    </link>
+
+    <joint name="${joint_name}" type="fixed">
+      <parent link="${parent_link}"/>
+      <child link="${link_name}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- Instantiate robot body -->
+  <xacro:base_body
+    link_name="base_link"
+    radius="${base_radius}"
+    height="${base_height}"/>
+
+  <!-- Instantiate two IMU sensors -->
+  <xacro:imu_sensor
+    link_name="imu_link_1"
+    joint_name="imu_joint_1"
+    parent_link="base_link"
+    xyz="${imu1_xyz}"
+    size="${imu_size}"/>
+
+  <xacro:imu_sensor
+    link_name="imu_link_2"
+    joint_name="imu_joint_2"
+    parent_link="base_link"
+    xyz="${imu2_xyz}"
+    size="${imu_size}"/>
+
+</robot>
